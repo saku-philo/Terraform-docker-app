@@ -1,6 +1,6 @@
 # 変数定義
 variable "sysname" {
-  default     = "tfdock"
+  default = "tfdock"
 }
 
 module "describe_regions_for_ec2" {
