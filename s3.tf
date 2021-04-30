@@ -22,3 +22,16 @@ resource "aws_s3_bucket_public_access_block" "private" {
   ignore_public_acls      = true
   restrict_public_buckets = true
 }
+
+# public bucket
+resource "aws_s3_bucket" "public" {
+  bucket = "tf-docker-app-public"
+  acl = "public-read"
+
+  cors_rule {
+    allowed_origins = ["https://www.example.com"]
+    allowed_methods = ["GET"]
+    allowed_headers = ["*"]
+    max_age_seconds = 3000
+  }
+}
