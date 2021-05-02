@@ -1,4 +1,6 @@
+# ===============================================
 # VPC
+# ===============================================
 resource "aws_vpc" "main" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_support   = true
@@ -9,12 +11,28 @@ resource "aws_vpc" "main" {
   }
 }
 
+# ===============================================
 # Internet gateway
+# ===============================================
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
 }
 
+# ===============================================
 # NAT gateway
+# ===============================================
+# 1. EIP
+resource "aws_eip" "nat_gateway_1" {
+  vpc        = true
+  depends_on = [aws_internet_gateway.main]
+}
+
+resource "aws_eip" "nat_gateway_2" {
+  vpc        = true
+  depends_on = [aws_internet_gateway.main]
+}
+
+# 2. NAT gateway
 resource "aws_nat_gateway" "nat_gateway_1" {
   allocation_id = aws_eip.nat_gateway_1.id
   subnet_id     = aws_subnet.public_1.id
@@ -27,7 +45,10 @@ resource "aws_nat_gateway" "nat_gateway_2" {
   depends_on    = [aws_internet_gateway.main]
 }
 
+# ===============================================
 # Route table
+# ===============================================
+# 1. Route table
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
 }
@@ -36,7 +57,7 @@ resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
 }
 
-# Route config
+# 2. Route config
 resource "aws_route" "public" {
   route_table_id         = aws_route_table.public.id
   gateway_id             = aws_internet_gateway.main.id
@@ -49,7 +70,7 @@ resource "aws_route" "private" {
   destination_cidr_block = "0.0.0.0/0"
 }
 
-# Route table association
+# 3. Route table association
 resource "aws_route_table_association" "public" {
   subnet_id      = aws_subnet.public.id
   route_table_id = aws_route_table.public.id
@@ -70,7 +91,10 @@ resource "aws_route_table_association" "public_2" {
   route_table_id = aws_route_table.public.id
 }
 
+# ===============================================
 # Public subnet
+# ===============================================
+# 1. public subnet
 resource "aws_subnet" "public" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.0.0/24"
@@ -82,7 +106,7 @@ resource "aws_subnet" "public" {
   }
 }
 
-# Public MultiAZ
+# 2. Public MultiAZ
 resource "aws_subnet" "public_1" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.1.0/24"
@@ -97,8 +121,9 @@ resource "aws_subnet" "public_2" {
   map_public_ip_on_launch = true
 }
 
-
+# ===============================================
 # Private subnet
+# ===============================================
 resource "aws_subnet" "private_1" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.65.0/24"
@@ -119,15 +144,4 @@ resource "aws_subnet" "private_2" {
   tags = {
     Name = "${var.sysname}-prod-trust-subnetC1"
   }
-}
-
-# EIP
-resource "aws_eip" "nat_gateway_1" {
-  vpc        = true
-  depends_on = [aws_internet_gateway.main]
-}
-
-resource "aws_eip" "nat_gateway_2" {
-  vpc        = true
-  depends_on = [aws_internet_gateway.main]
 }
