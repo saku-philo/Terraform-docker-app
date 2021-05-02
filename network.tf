@@ -93,11 +93,26 @@ resource "aws_subnet" "public_2" {
 
 
 # Private subnet
-resource "aws_subnet" "private" {
+resource "aws_subnet" "private_1" {
   vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.64.0/24"
+  cidr_block              = "10.0.65.0/24"
   availability_zone       = "ap-northeast-1a"
   map_public_ip_on_launch = false
+
+  tags = {
+    Name = "${var.sysname}-prod-trust-subnetA1"
+  }
+}
+
+resource "aws_subnet" "private_2" {
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = "10.0.66.0/24"
+  availability_zone       = "ap-northeast-1c"
+  map_public_ip_on_launch = false
+
+  tags = {
+    Name = "${var.sysname}-prod-trust-subnetC1"
+  }
 }
 
 # EIP
