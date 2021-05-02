@@ -15,9 +15,15 @@ resource "aws_internet_gateway" "main" {
 }
 
 # NAT gateway
-resource "aws_nat_gateway" "main" {
-  allocation_id = aws_eip.nat_gateway.id
-  subnet_id     = aws_subnet.public.id
+resource "aws_nat_gateway" "nat_gateway_1" {
+  allocation_id = aws_eip.nat_gateway_1.id
+  subnet_id     = aws_subnet.public_1.id
+  depends_on    = [aws_internet_gateway.main]
+}
+
+resource "aws_nat_gateway" "nat_gateway_2" {
+  allocation_id = aws_eip.nat_gateway_2.id
+  subnet_id     = aws_subnet.public_2.id
   depends_on    = [aws_internet_gateway.main]
 }
 
@@ -116,7 +122,12 @@ resource "aws_subnet" "private_2" {
 }
 
 # EIP
-resource "aws_eip" "nat_gateway" {
+resource "aws_eip" "nat_gateway_1" {
+  vpc        = true
+  depends_on = [aws_internet_gateway.main]
+}
+
+resource "aws_eip" "nat_gateway_2" {
   vpc        = true
   depends_on = [aws_internet_gateway.main]
 }
