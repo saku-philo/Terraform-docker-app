@@ -14,7 +14,7 @@ resource "aws_lb" "web" {
     aws_subnet.public_2.id,
   ]
 
-  access_log {
+  access_logs {
     bucket  = aws_s3_bucket.alb_log.id
     enabled = true
   }
@@ -53,4 +53,21 @@ module "http_redirect_sg" {
   vpc_id      = aws_vpc.main.id
   port        = 8080
   cidr_blocks = ["0.0.0.0/0"]
+}
+
+# 3. ALB Listener
+resource "aws_lb_listener" "http" {
+  load_balancer_arn = aws_lb.web.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type = "fixed-response"
+
+    fixed_response {
+      content_type = "text/plain"
+      message_body = "This is [HTTP]."
+      status_code  = "200"
+    }
+  }
 }
