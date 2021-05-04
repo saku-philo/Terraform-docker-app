@@ -7,7 +7,7 @@ resource "aws_lb" "web" {
   load_balancer_type         = "application"
   internal                   = false
   idle_timeout               = 60
-  enable_deletion_protection = true
+  enable_deletion_protection = false # 削除保護する場合はtrue
 
   subnets = [
     aws_subnet.public_1.id,
