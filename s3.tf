@@ -47,6 +47,8 @@ resource "aws_s3_bucket" "alb_log" {
       days = "180"
     }
   }
+
+  force_destroy = true
 }
 
 resource "aws_s3_bucket_policy" "alb_log" {
