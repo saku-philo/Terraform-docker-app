@@ -14,9 +14,11 @@ resource "aws_ecs_task_definition" "web_server_task" {
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   container_definitions    = file("./container_definitions.json")
+  execution_role_arn       = module.ecs_task_execution_role.iam_role_arn
 }
 
-# 3. ECSサービスの定義
+# 3. ECSサービス
+# 3-1. ECSサービスの定義
 resource "aws_ecs_service" "web_server_service" {
   name                              = "web_server_service"
   cluster                           = aws_ecs_cluster.web_server.arn
@@ -47,11 +49,44 @@ resource "aws_ecs_service" "web_server_service" {
   }
 }
 
-#　4. nginxモジュール
+#　3-2. nginxセキュリティグループモジュール
 module "nginx_sg" {
   source      = "./security_group"
   name        = "nginx_sg"
   vpc_id      = aws_vpc.main.id
   port        = 80
   cidr_blocks = [aws_vpc.main.cidr_block]
+}
+
+# 4. CloudWatch Logs関係の定義
+# 4-1. ロググループ定義
+resource "aws_cloudwatch_log_group" "ecs_web_server" {
+  name              = "/ecs/web_server"
+  retention_in_days = 180
+}
+
+# 4-2. ECSタスク実行IAMロール
+# 4-2-1. IAMポリシーデータソース
+data "aws_iam_policy" "ecs_task_execution_role_policy" {
+  # AWS管理ポリシー使用
+  arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+# 4-2-2. ポリシードキュメント
+data "aws_iam_policy_document" "ecs_task_execution" {
+  source_json = data.aws_iam_policy.ecs_task_execution_role_policy.policy
+
+  statement {
+    effect    = "Allow"
+    actions   = ["ssm:GetParameters", "kms:Decrypt"]
+    resources = ["*"]
+  }
+}
+
+# 4-2-3. IAMロール
+module "ecs_task_execution_role" {
+  source     = "./iam_role"
+  name       = "ecs-task-execution"
+  identifier = "ecs-tasks.amazonaws.com"
+  policy     = data.aws_iam_policy_document.ecs_task_execution.json
 }
