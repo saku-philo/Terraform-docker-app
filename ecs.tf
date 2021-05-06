@@ -65,7 +65,18 @@ resource "aws_cloudwatch_log_group" "ecs_web_server" {
 }
 
 # 4-2. ECSタスク実行IAMロール
-data "aws_ima_policy" "ecs_task_execution_role_policy" {
+data "aws_iam_policy" "ecs_task_execution_role_policy" {
   # AWS管理ポリシー使用
   arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+# 4-3. ポリシードキュメント
+data "aws_ima_policy_document" "ecs_task_execution" {
+  source_json = data.aws_iam_policy.ecs_task_execution_role_policy.policy
+
+  statement {
+    effect = "Allow"
+    actions = ["ssm:GetParameters", "kms:Decrypt"]
+    resources = ["*"]
+  }
 }
