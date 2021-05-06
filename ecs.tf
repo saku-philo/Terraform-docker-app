@@ -14,6 +14,7 @@ resource "aws_ecs_task_definition" "web_server_task" {
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   container_definitions    = file("./container_definitions.json")
+  execution_role_arn       = module.ecs_task_execution_role.iam_role_arn
 }
 
 # 3. ECSサービス
@@ -72,7 +73,7 @@ data "aws_iam_policy" "ecs_task_execution_role_policy" {
 }
 
 # 4-2-2. ポリシードキュメント
-data "aws_ima_policy_document" "ecs_task_execution" {
+data "aws_iam_policy_document" "ecs_task_execution" {
   source_json = data.aws_iam_policy.ecs_task_execution_role_policy.policy
 
   statement {
@@ -84,7 +85,7 @@ data "aws_ima_policy_document" "ecs_task_execution" {
 
 # 4-2-3. IAMロール
 module "ecs_task_execution_role" {
-  source     = "./ima_role"
+  source     = "./iam_role"
   name       = "ecs-task-execution"
   identifier = "ecs-tasks.amazonaws.com"
   policy     = data.aws_iam_policy_document.ecs_task_execution.json
