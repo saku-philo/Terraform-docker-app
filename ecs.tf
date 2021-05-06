@@ -60,7 +60,7 @@ module "nginx_sg" {
 # 4. CloudWatch Logs関係の定義
 # 4-1. ロググループ定義
 resource "aws_cloudwatch_log_group" "ecs_web_server" {
-  name = "/ecs/web_server"
+  name              = "/ecs/web_server"
   retention_in_days = 180
 }
 
@@ -76,16 +76,16 @@ data "aws_ima_policy_document" "ecs_task_execution" {
   source_json = data.aws_iam_policy.ecs_task_execution_role_policy.policy
 
   statement {
-    effect = "Allow"
-    actions = ["ssm:GetParameters", "kms:Decrypt"]
+    effect    = "Allow"
+    actions   = ["ssm:GetParameters", "kms:Decrypt"]
     resources = ["*"]
   }
 }
 
 # 4-2-3. IAMロール
 module "ecs_task_execution_role" {
-  source = "./ima_role"
-  name = "ecs-task-execution"
+  source     = "./ima_role"
+  name       = "ecs-task-execution"
   identifier = "ecs-tasks.amazonaws.com"
-  policy = data.aws_iam_policy_document.ecs_task_execution.json
+  policy     = data.aws_iam_policy_document.ecs_task_execution.json
 }
