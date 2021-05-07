@@ -90,3 +90,21 @@ module "ecs_task_execution_role" {
   identifier = "ecs-tasks.amazonaws.com"
   policy     = data.aws_iam_policy_document.ecs_task_execution.json
 }
+
+# 5. バッチ処理
+# 5-1. バッチ用CloudWatch Logs設定
+resource "aws_cloudwatch_log_group" "ecs_scheduled_tasks" {
+  name      = "/ecs/scheduled_tasks"
+  retention = 180
+}
+
+# 5-2. バッチ用タスク定義
+resource "aws_ecs_task_definition" "time_batch" {
+  family                   = "time_batch"
+  cpu                      = "256"
+  memory                   = "512"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  container_definitions    = file("./batch_container_definitions.json")
+  execution_role_arn       = module.ecs_task_execution_role.iam_role_arn
+}
