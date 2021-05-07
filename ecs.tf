@@ -90,3 +90,10 @@ module "ecs_task_execution_role" {
   identifier = "ecs-tasks.amazonaws.com"
   policy     = data.aws_iam_policy_document.ecs_task_execution.json
 }
+
+# 5. バッチ処理
+# 5-1. バッチ用CloudWatch Logs設定
+resource "aws_cloudwatch_log_group" "ecs_scheduled_tasks" {
+  name = "/ecs/scheduled_tasks"
+  retention = 180
+}
