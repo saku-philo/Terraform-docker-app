@@ -95,7 +95,7 @@ module "ecs_task_execution_role" {
 # 5-1. バッチ用CloudWatch Logs設定
 resource "aws_cloudwatch_log_group" "ecs_scheduled_tasks" {
   name      = "/ecs/scheduled_tasks"
-  retention = 180
+  retention_in_days = 180
 }
 
 # 5-2. バッチ用タスク定義
