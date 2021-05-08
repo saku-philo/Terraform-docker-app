@@ -123,9 +123,9 @@ data "aws_iam_policy" "ecs_events_role_policy" {
 
 # 5-4. CloudWatchイベントルールの定義
 resource "aws_cloudwatch_event_rule" "time_batch" {
-  name                 = "time_batch"
-  description          = "important batch"
-  scheduled_expression = "cron(*/2 * * * ? *)"
+  name                = "time_batch"
+  description         = "important batch"
+  schedule_expression = "cron(*/2 * * * ? *)"
 }
 
 # 5-5. CloudWatchイベントターゲット
