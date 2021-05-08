@@ -120,3 +120,10 @@ module "ecs_events_role" {
 data "aws_iam_policy" "ecs_events_role_policy" {
   arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceEventsRole"
 }
+
+# 5-4. CloudWatchイベントルールの定義
+resource "aws_cloudwatch_event_rule" "time_batch" {
+  name                 = "time_batch"
+  description          = "important batch"
+  scheduled_expression = "cron(*/2 * * * ? *)"
+}
