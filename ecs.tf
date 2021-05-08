@@ -94,7 +94,7 @@ module "ecs_task_execution_role" {
 # 5. バッチ処理
 # 5-1. バッチ用CloudWatch Logs設定
 resource "aws_cloudwatch_log_group" "ecs_scheduled_tasks" {
-  name      = "/ecs/scheduled_tasks"
+  name              = "/ecs/scheduled_tasks"
   retention_in_days = 180
 }
 
@@ -111,10 +111,10 @@ resource "aws_ecs_task_definition" "time_batch" {
 
 # 5-3. CloudWatchイベント用IAMロールの定義
 module "ecs_events_role" {
-  source = "./iam_role"
-  name = "ecs-events"
+  source     = "./iam_role"
+  name       = "ecs-events"
   identifier = "events.amazonaws.com"
-  policy = data.aws_iam_policy.ecs_events_role_policy.policy
+  policy     = data.aws_iam_policy.ecs_events_role_policy.policy
 }
 
 data "aws_iam_policy" "ecs_events_role_policy" {
