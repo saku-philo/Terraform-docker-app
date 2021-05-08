@@ -94,8 +94,8 @@ module "ecs_task_execution_role" {
 # 5. バッチ処理
 # 5-1. バッチ用CloudWatch Logs設定
 resource "aws_cloudwatch_log_group" "ecs_scheduled_tasks" {
-  name      = "/ecs/scheduled_tasks"
-  retention = 180
+  name              = "/ecs/scheduled_tasks"
+  retention_in_days = 180
 }
 
 # 5-2. バッチ用タスク定義
@@ -107,4 +107,43 @@ resource "aws_ecs_task_definition" "time_batch" {
   requires_compatibilities = ["FARGATE"]
   container_definitions    = file("./batch_container_definitions.json")
   execution_role_arn       = module.ecs_task_execution_role.iam_role_arn
+}
+
+# 5-3. CloudWatchイベント用IAMロールの定義
+module "ecs_events_role" {
+  source     = "./iam_role"
+  name       = "ecs-events"
+  identifier = "events.amazonaws.com"
+  policy     = data.aws_iam_policy.ecs_events_role_policy.policy
+}
+
+data "aws_iam_policy" "ecs_events_role_policy" {
+  arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceEventsRole"
+}
+
+# 5-4. CloudWatchイベントルールの定義
+resource "aws_cloudwatch_event_rule" "time_batch" {
+  name                = "time_batch"
+  description         = "important batch"
+  schedule_expression = "cron(*/2 * * * ? *)"
+}
+
+# 5-5. CloudWatchイベントターゲット
+resource "aws_cloudwatch_event_target" "time_batch" {
+  target_id = "time_batch"
+  rule      = aws_cloudwatch_event_rule.time_batch.name
+  role_arn  = module.ecs_events_role.iam_role_arn
+  arn       = aws_ecs_cluster.web_server.arn
+
+  ecs_target {
+    launch_type         = "FARGATE"
+    task_count          = 1
+    platform_version    = "1.3.0"
+    task_definition_arn = aws_ecs_task_definition.time_batch.arn
+
+    network_configuration {
+      assign_public_ip = "false"
+      subnets          = [aws_subnet.private_1.id]
+    }
+  }
 }
