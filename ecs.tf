@@ -127,3 +127,23 @@ resource "aws_cloudwatch_event_rule" "time_batch" {
   description          = "important batch"
   scheduled_expression = "cron(*/2 * * * ? *)"
 }
+
+# 5-5. CloudWatchイベントターゲット
+resource "aws_cloudwatch_event_target" "time_batch" {
+  target_id = "time_batch"
+  rule      = aws_cloudwatch_event_rule.time_batch.name
+  role_arn  = module.ecs_events_role.iam_role_arn
+  arn       = aws_ecs_cluster.web_server.arn
+
+  ecs_target {
+    launch_type         = "FARGATE"
+    task_count          = 1
+    platform_version    = "1.3.0"
+    task_definition_arn = aws_ecs_task_definition.time_batch.arn
+
+    network_configuration {
+      assign_public_ip = "false"
+      subnets          = [aws_subnet.private_1.id]
+    }
+  }
+}
