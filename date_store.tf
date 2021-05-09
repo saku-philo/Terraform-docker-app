@@ -92,10 +92,38 @@ resource "aws_elasticache_parameter_group" "tfdock-ec" {
 }
 
 # 2. ElastiCacheサブネットグループ
-resource "aws_elasticache_subnet_group" "tfdocke-ec" {
+resource "aws_elasticache_subnet_group" "tfdock-ec" {
   name = "tfdock-ec"
   subnet_ids = [
     aws_subnet.private_1.id,
     aws_subnet.private_2.id
   ]
+}
+
+# 3. ElastiCacheレプリケーショングループ
+resource "aws_elasticache_replication_group" "tfdock-ec" {
+  replication_group_id          = "tfdock-ec"
+  replication_group_description = "Cluster Disabled"
+  engine                        = "redis"
+  engine_version                = "5.0.5"
+  number_cache_clusters         = 3
+  node_type                     = "cache.m5.large"
+  snapshot_window               = "09:10-10:10"
+  snapshot_retention_limit      = 7
+  maintenance_window            = "mon:10:40-mon:11:40"
+  automatic_failover_enabled    = true
+  port                          = 6379
+  apply_immediately             = false
+  security_group_ids            = [module.redis_sg.security_group_id]
+  parameter_group_name          = aws_elasticache_parameter_group.tfdock-ec.name
+  subnet_group_name             = aws_elasticache_subnet_group.tfdock-ec.name
+}
+
+# 4. ElastiCacheセキュリティグループ
+module "redis_sg" {
+  source      = "./security_group"
+  name        = "redis-sg"
+  vpc_id      = aws_vpc.main.id
+  port        = 6379
+  cidr_blocks = [aws_vpc.main.cidr_block]
 }
