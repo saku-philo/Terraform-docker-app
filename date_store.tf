@@ -54,10 +54,10 @@ resource "aws_db_instance" "tfdock-rds" {
   backup_window              = "09:10-09:40"
   maintenance_window         = "mon:10:10-mon:10:40"
   auto_minor_version_upgrade = false
-  deletion_protection        = true  // 削除の際falseにしてapply
-  skip_final_snapshot        = false // 削除の際trueにしてapply
+  deletion_protection        = false // 削除の際falseにしてapply
+  skip_final_snapshot        = true  // 削除の際trueにしてapply
   port                       = 3306
-  apply_immediately         = false // true時apply後にrebootされる
+  apply_immediately          = true // true時apply後にrebootされる
   vpc_security_group_ids     = [module.mysql_sg.security_group_id]
   parameter_group_name       = aws_db_parameter_group.tfdock-rds.name
   option_group_name          = aws_db_option_group.tfdock-rds.name
@@ -75,4 +75,18 @@ module "mysql_sg" {
   vpc_id      = aws_vpc.main.id
   port        = 3306
   cidr_blocks = [aws_vpc.main.cidr_block]
+}
+
+# ===============================================
+# ElastiCache
+# ===============================================
+# 1. ElasticCacheパラメータグループ
+resource "aws_elasticache_parameter_group" "tfdock-ec" {
+  name   = "tfdock-ec"
+  family = "redis5.0"
+
+  parameter {
+    name  = "cluster-enabled"
+    value = "no"
+  }
 }
