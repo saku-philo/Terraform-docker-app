@@ -90,3 +90,12 @@ resource "aws_elasticache_parameter_group" "tfdock-ec" {
     value = "no"
   }
 }
+
+# 2. ElastiCacheサブネットグループ
+resource "aws_elasticache_subnet_group" "tfdocke-ec" {
+  name = "tfdock-ec"
+  subnet_ids = [
+    aws_subnet.private_1.id,
+    aws_subnet.private_2.id
+  ]
+}
