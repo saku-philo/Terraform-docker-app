@@ -54,10 +54,10 @@ resource "aws_db_instance" "tfdock-rds" {
   backup_window              = "09:10-09:40"
   maintenance_window         = "mon:10:10-mon:10:40"
   auto_minor_version_upgrade = false
-  deletion_protection        = true  // 削除の際falseにしてapply
-  skip_final_snapshot        = false // 削除の際trueにしてapply
+  deletion_protection        = false // 削除の際falseにしてapply
+  skip_final_snapshot        = true  // 削除の際trueにしてapply
   port                       = 3306
-  apply_immediately         = false // true時apply後にrebootされる
+  apply_immediately          = true // true時apply後にrebootされる
   vpc_security_group_ids     = [module.mysql_sg.security_group_id]
   parameter_group_name       = aws_db_parameter_group.tfdock-rds.name
   option_group_name          = aws_db_option_group.tfdock-rds.name
@@ -74,5 +74,56 @@ module "mysql_sg" {
   name        = "mysql-sg"
   vpc_id      = aws_vpc.main.id
   port        = 3306
+  cidr_blocks = [aws_vpc.main.cidr_block]
+}
+
+# ===============================================
+# ElastiCache
+# ===============================================
+# 1. ElasticCacheパラメータグループ
+resource "aws_elasticache_parameter_group" "tfdock-ec" {
+  name   = "tfdock-ec"
+  family = "redis5.0"
+
+  parameter {
+    name  = "cluster-enabled"
+    value = "no"
+  }
+}
+
+# 2. ElastiCacheサブネットグループ
+resource "aws_elasticache_subnet_group" "tfdock-ec" {
+  name = "tfdock-ec"
+  subnet_ids = [
+    aws_subnet.private_1.id,
+    aws_subnet.private_2.id
+  ]
+}
+
+# 3. ElastiCacheレプリケーショングループ
+resource "aws_elasticache_replication_group" "tfdock-ec" {
+  replication_group_id          = "tfdock-ec"
+  replication_group_description = "Cluster Disabled"
+  engine                        = "redis"
+  engine_version                = "5.0.5"
+  number_cache_clusters         = 3
+  node_type                     = "cache.m5.large"
+  snapshot_window               = "09:10-10:10"
+  snapshot_retention_limit      = 7
+  maintenance_window            = "mon:10:40-mon:11:40"
+  automatic_failover_enabled    = true
+  port                          = 6379
+  apply_immediately             = false
+  security_group_ids            = [module.redis_sg.security_group_id]
+  parameter_group_name          = aws_elasticache_parameter_group.tfdock-ec.name
+  subnet_group_name             = aws_elasticache_subnet_group.tfdock-ec.name
+}
+
+# 4. ElastiCacheセキュリティグループ
+module "redis_sg" {
+  source      = "./security_group"
+  name        = "redis-sg"
+  vpc_id      = aws_vpc.main.id
+  port        = 6379
   cidr_blocks = [aws_vpc.main.cidr_block]
 }
