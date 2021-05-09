@@ -7,7 +7,7 @@ resource "aws_ssm_parameter" "db_username" {
 
 resource "aws_ssm_parameter" "db_password" {
   name        = "/db/password"
-  value       = "uninitialized"
+  value       = "uninitialized" // apply後にCLIを使用して上書き
   type        = "SecureString"
   description = "データベースパスワード"
 
