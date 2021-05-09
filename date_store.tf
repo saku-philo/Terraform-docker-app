@@ -27,3 +27,12 @@ resource "aws_db_option_group" "tfdock-rds" {
     option_name = "MARIADB_AUDIT_PLUGIN"
   }
 }
+
+# 3. DBサブネットグループ
+resource "aws_db_subnet_group" "tfdock-rds" {
+  name = "tfdock-rds"
+  subnet_ids = [
+    aws_subnet.private_1.id,
+    aws_subnet.private_2.id
+  ]
+}
