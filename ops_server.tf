@@ -55,3 +55,28 @@ resource "aws_instance" "tfdock_for_operation" {
 output "operation_instance_id" {
   value = aws_instance.tfdock_for_operation.id
 }
+
+# 4. CloudWatch Logs設定
+resource "aws_cloudwatch_log_group" "ops_server" {
+  name              = "/ops_server"
+  retention_in_days = 180
+}
+
+# 5. SSM Document
+resource "aws_ssm_document" "session_manager_run_shell" {
+  name            = "SSM-SessionManagerRunShell"
+  document_type   = "Session"
+  document_format = "JSON"
+
+  content = <<EOF
+  {
+    "schemaVersion": "1.0",
+    "description": "Document to hold regional settings for Session Manager",
+    "sessionType": "Standard_Stream",
+    "inputs": {
+      "s3BucketName": "${aws_s3_bucket.operation.id}",
+      "cloudWatchLogGroupName": "${aws_cloudwatch_log_group.ops_server.name}"
+    }
+  }
+EOF
+}

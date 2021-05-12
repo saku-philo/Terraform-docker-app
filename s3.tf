@@ -1,4 +1,7 @@
-# private bucket
+# ===============================================
+# S3
+# ===============================================
+# 1. private bucket
 resource "aws_s3_bucket" "private" {
   bucket = "tf-docker-app-private"
 
@@ -23,7 +26,7 @@ resource "aws_s3_bucket_public_access_block" "private" {
   restrict_public_buckets = true
 }
 
-# public bucket
+# 2. public bucket
 resource "aws_s3_bucket" "public" {
   bucket = "tf-docker-app-public"
   acl    = "public-read"
@@ -36,7 +39,7 @@ resource "aws_s3_bucket" "public" {
   }
 }
 
-# log bucket
+# 3. log bucket
 resource "aws_s3_bucket" "alb_log" {
   bucket = "tf-docker-app-alb-log"
 
@@ -67,4 +70,19 @@ data "aws_iam_policy_document" "alb_log" {
       identifiers = ["582318560864"]
     }
   }
+}
+
+# 4. Ops server log bucket
+resource "aws_s3_bucket" "operation" {
+  bucket = "tf-docker-app-operation-log"
+
+  lifecycle_rule {
+    enabled = true
+
+    expiration {
+      days = "180"
+    }
+  }
+
+  force_destroy = true
 }
