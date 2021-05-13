@@ -86,3 +86,18 @@ resource "aws_s3_bucket" "operation" {
 
   force_destroy = true
 }
+
+# 5. CloudWatch Logs 永続化バケット
+resource "aws_s3_bucket" "cloudwatch_logs" {
+  bucket = "tf-docker-app-cloudwatch-logs"
+
+  lifecycle_rule {
+    enabled = true
+
+    expiration {
+      days = "180"
+    }
+  }
+
+  force_destroy = true
+}
