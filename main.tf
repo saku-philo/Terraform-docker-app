@@ -1,3 +1,12 @@
+# Terraformバージョン、プロバイダーバージョンの定義
+terraform {
+  required_version = "0.15.3"
+
+  required_providers {
+    aws = "3.40.0"
+  }
+}
+
 # 変数定義
 variable "sysname" {
   default = "tfdock"
